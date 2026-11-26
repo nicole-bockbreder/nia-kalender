@@ -1,0 +1,24 @@
+name: Nia-Kalender aktualisieren
+on:
+  schedule:
+    - cron: '17 */6 * * *'   # alle 6 Stunden
+  workflow_dispatch: {}      # von Hand starten möglich
+  push:
+    branches: [main]
+permissions:
+  contents: write
+jobs:
+  feed:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: node feed.mjs
+      - name: Speichern, wenn sich etwas geändert hat
+        run: |
+          git config user.name "nia-kalender-bot"
+          git config user.email "nia-kalender-bot@users.noreply.github.com"
+          git add docs/nia.ics
+          git diff --cached --quiet -I '^DTSTAMP' || (git commit -m "Kalender aktualisiert" && git push)
